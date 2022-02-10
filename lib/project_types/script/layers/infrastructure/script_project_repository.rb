@@ -36,6 +36,7 @@ module Script
             organization_id: nil,
             extension_point_type: extension_point_type,
             script_name: script_name,
+            description: "#{extension_point_type} default script",
             language: language
           )
 
@@ -49,6 +50,7 @@ module Script
             id: project.directory,
             env: project.env,
             script_name: script_name,
+            description: description,
             extension_point_type: extension_point_type,
             language: language,
             script_config: script_config_repository.get!,
@@ -79,6 +81,14 @@ module Script
           build_script_project
         end
 
+        # def update_project_config(title:)
+        #   project_config = ShopifyCLI::Project.current.config
+        #   require 'pry'
+        #   binding.pry
+        #   project_config["title"] = title
+        #   ctx.write(".shopify-cli.yml", YAML.dump(project_config))
+        # end
+
         def update_script_config(title:)
           script_config = script_config_repository.update!(title: title)
           build_script_project(script_config: script_config)
@@ -93,6 +103,7 @@ module Script
             id: ctx.root,
             env: project.env,
             script_name: script_name,
+            description: description,
             extension_point_type: extension_point_type,
             language: language,
             script_config: script_config,
@@ -113,6 +124,10 @@ module Script
 
         def script_name
           project_config_value!("script_name")
+        end
+
+        def description
+          project_config_value!("description")
         end
 
         def language

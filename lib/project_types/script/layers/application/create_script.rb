@@ -39,7 +39,6 @@ module Script
               )
 
               install_dependencies(ctx, language, script_name, project_creator)
-              script_project_repo.update_script_config(title: script_name)
               project
             end
           end

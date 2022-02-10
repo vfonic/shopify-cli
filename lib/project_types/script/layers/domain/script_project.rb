@@ -13,6 +13,7 @@ module Script
 
         property! :extension_point_type, accepts: String
         property! :script_name, accepts: String
+        property! :description, accepts: String
         property! :language, accepts: String
 
         property :script_config, accepts: ScriptConfig
