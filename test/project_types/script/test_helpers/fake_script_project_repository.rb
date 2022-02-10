@@ -15,13 +15,16 @@ module TestHelpers
       @project = nil
     end
 
-    def create(script_name:, extension_point_type:, language:, env: nil, input_query: nil)
+    def create(script_name:, extension_point_type:, language:,
+      env: nil, input_query: nil, description: "project_description")
+
       script_config = fake_script_config_repo.create({ "version" => 1, "title" => script_name })
 
       @project = Script::Layers::Domain::ScriptProject.new(
         id: "/#{script_name}",
         env: env || ShopifyCLI::Resources::EnvFile.new(api_key: "1234", secret: "shh", extra: {}),
         script_name: script_name,
+        description: description,
         extension_point_type: extension_point_type,
         language: language,
         script_config: script_config,

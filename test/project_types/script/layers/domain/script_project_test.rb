@@ -7,6 +7,7 @@ describe Script::Layers::Domain::ScriptProject do
   let(:env) { ShopifyCLI::Resources::EnvFile.new(api_key: "1234", secret: "shh") }
   let(:extension_point_type) { "discount" }
   let(:script_name) { "foo_script" }
+  let(:description) { "description" }
   let(:language) { "assemblyscript" }
   let(:script_config_filename) { "script.config.yml" }
   let(:script_config) do
@@ -32,6 +33,7 @@ describe Script::Layers::Domain::ScriptProject do
         env: env,
         extension_point_type: extension_point_type,
         script_name: script_name,
+        description: description,
         language: language,
         script_config: script_config,
         input_query: input_query,
@@ -54,6 +56,7 @@ describe Script::Layers::Domain::ScriptProject do
         assert_equal env, subject.env
         assert_equal extension_point_type, subject.extension_point_type
         assert_equal script_name, subject.script_name
+        assert_equal description, subject.description
         assert_equal language, subject.language
         assert_equal script_config, subject.script_config
         assert_equal input_query, subject.input_query
@@ -61,13 +64,14 @@ describe Script::Layers::Domain::ScriptProject do
     end
 
     describe "when optional properties are missing" do
-      let(:args) { all_args.slice(:id, :extension_point_type, :script_name, :language) }
+      let(:args) { all_args.slice(:id, :extension_point_type, :script_name, :description, :language) }
 
       it "should create the entity" do
         assert_equal id, subject.id
         assert_nil subject.env
         assert_equal extension_point_type, subject.extension_point_type
         assert_equal script_name, subject.script_name
+        assert_equal description, subject.description
         assert_equal language, subject.language
         assert_nil subject.script_config
       end

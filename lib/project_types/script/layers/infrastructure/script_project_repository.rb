@@ -81,19 +81,6 @@ module Script
           build_script_project
         end
 
-        # def update_project_config(title:)
-        #   project_config = ShopifyCLI::Project.current.config
-        #   require 'pry'
-        #   binding.pry
-        #   project_config["title"] = title
-        #   ctx.write(".shopify-cli.yml", YAML.dump(project_config))
-        # end
-
-        def update_script_config(title:)
-          script_config = script_config_repository.update!(title: title)
-          build_script_project(script_config: script_config)
-        end
-
         private
 
         def build_script_project(
@@ -192,15 +179,6 @@ module Script
 
             content = ctx.read(filename)
             hash = file_content_to_hash(content)
-
-            from_h(hash)
-          end
-
-          def update!(title:)
-            hash = get!.content
-            update_hash(hash: hash, title: title)
-
-            ctx.write(filename, hash_to_file_content(hash))
 
             from_h(hash)
           end

@@ -6,7 +6,7 @@ module Script
       class ScriptConfig
         attr_reader :content, :version, :configuration_ui, :configuration, :filename
 
-        REQUIRED_FIELDS = %w(version title)
+        REQUIRED_FIELDS = %w(version)
 
         def initialize(content:, filename:)
           @filename = filename

@@ -52,6 +52,8 @@ describe Script::Layers::Infrastructure::ScriptService do
     let(:uuid_from_config) { "uuid_from_config" }
     let(:uuid_from_server) { "uuid_from_server" }
     let(:url) { "https://some-bucket" }
+    let(:title) { "title_from_project_config" }
+    let(:description) { "description_from_project_config" }
     let(:library_language) { "assemblyscript" }
     let(:library_version) { "1.0.0" }
 
@@ -70,6 +72,8 @@ describe Script::Layers::Infrastructure::ScriptService do
       script_service.set_app_script(
         uuid: uuid_from_config,
         extension_point_type: extension_point_type,
+        title: title,
+        description: description,
         metadata: Script::Layers::Domain::Metadata.new(
           schema_major_version,
           schema_minor_version,
@@ -87,10 +91,6 @@ describe Script::Layers::Infrastructure::ScriptService do
           "data" => {
             "appScriptSet" => {
               "appScript" => {
-                "apiKey" => "fake_key",
-                "configSchema" => nil,
-                "extensionPointName" => extension_point_type,
-                "title" => "foo2",
                 "uuid" => uuid_from_server,
               },
               "userErrors" => [],

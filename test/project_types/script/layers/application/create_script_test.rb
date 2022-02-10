@@ -121,7 +121,6 @@ describe Script::Layers::Application::CreateScript do
         subject
 
         script_config = script_project_repository.get.script_config
-        assert_equal script_name, script_config.title
         assert_equal "1", script_config.version
       end
     end

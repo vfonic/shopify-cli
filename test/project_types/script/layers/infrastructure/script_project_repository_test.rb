@@ -66,12 +66,13 @@ describe Script::Layers::Infrastructure::ScriptProjectRepository do
     end
 
     describe "success" do
-      def it_should_create_a_new_script_project
+      it "should_create_a_new_script_project" do
         capture_io { subject }
 
         assert_nil subject.env
         assert_nil subject.uuid
         assert_equal script_name, subject.script_name
+        assert_equal "#{extension_point_type} default script", subject.description
         assert_equal extension_point_type, subject.extension_point_type
         assert_equal language, subject.language
       end
@@ -82,6 +83,7 @@ describe Script::Layers::Infrastructure::ScriptProjectRepository do
     subject { instance.get }
 
     let(:script_name) { "script_name" }
+    let(:description) { "#{extension_point_type} default script" }
     let(:extension_point_type) { "tax_filter" }
     let(:language) { "assemblyscript" }
     let(:uuid) { "uuid" }
@@ -89,7 +91,6 @@ describe Script::Layers::Infrastructure::ScriptProjectRepository do
     let(:script_config_content) do
       {
         "version" => "2",
-        "title" => script_name,
         "configuration" => {
           "type": "single",
           "schema": [
@@ -107,7 +108,8 @@ describe Script::Layers::Infrastructure::ScriptProjectRepository do
     let(:valid_config) do
       {
         "extension_point_type" => "tax_filter",
-        "script_name" => "script_name",
+        "script_name" => script_name,
+        "description" => description,
         "script_config" => script_config,
       }
     end
@@ -150,6 +152,7 @@ describe Script::Layers::Infrastructure::ScriptProjectRepository do
       it "should return the ScriptProject" do
         assert_equal current_project.directory, subject.id
         assert_equal script_name, subject.script_name
+        assert_equal description, subject.description
         assert_equal extension_point_type, subject.extension_point_type
         assert_equal language, subject.language
         assert_equal script_config_content["version"], subject.script_config.version
@@ -203,6 +206,14 @@ describe Script::Layers::Infrastructure::ScriptProjectRepository do
         end
       end
 
+      describe "when missing description" do
+        let(:actual_config) { hash_except(valid_config, "description") }
+
+        it "should raise InvalidContextError" do
+          assert_raises(Script::Layers::Infrastructure::Errors::InvalidContextError) { subject }
+        end
+      end
+
       describe "when missing script_config" do
         let(:actual_config) { hash_except(valid_config, "script_config") }
 
@@ -231,7 +242,7 @@ describe Script::Layers::Infrastructure::ScriptProjectRepository do
     let(:uuid) { "uuid" }
     let(:updated_uuid) { "updated_uuid" }
     let(:script_config) { "script.config.yml" }
-    let(:script_config_content) { { "version" => "2", "title" => script_name }.to_json }
+    let(:script_config_content) { { "version" => "2" }.to_json }
     let(:env) { ShopifyCLI::Resources::EnvFile.new(api_key: "123", secret: "foo", extra: env_extra) }
     let(:env_extra) { { "uuid" => "original_uuid", "something" => "else" } }
     let(:valid_config) do
@@ -241,6 +252,7 @@ describe Script::Layers::Infrastructure::ScriptProjectRepository do
         "uuid" => uuid,
         "extension_point_type" => "tax_filter",
         "script_name" => "script_name",
+        "description" => "#{extension_point_type} default script",
         "script_config" => script_config,
       }
     end
@@ -273,6 +285,7 @@ describe Script::Layers::Infrastructure::ScriptProjectRepository do
           script_name: "c",
           project_type: "d",
           organization_id: "e",
+          description: "f",
         }
       end
 
@@ -303,133 +316,10 @@ describe Script::Layers::Infrastructure::ScriptProjectRepository do
     end
   end
 
-  describe "#update_script_config" do
-    let(:new_title) { "new title" }
-    let(:new_configuration_ui) { true }
-    let(:current_project) do
-      TestHelpers::FakeProject.new(directory: ctx.root, config: project_config)
-    end
-    let(:project_config) do
-      {
-        "project_type" => "script",
-        "organization_id" => 1,
-        "uuid" => "uuid",
-        "extension_point_type" => "tax_filter",
-        "script_name" => "script_name",
-      }
-    end
-
-    before do
-      ShopifyCLI::Project.stubs(:has_current?).returns(true)
-      ShopifyCLI::Project.stubs(:current).returns(current_project)
-    end
-
-    subject { instance.update_script_config(title: new_title) }
-
-    describe "script.config.yml does not exist" do
-      it "raises NoScriptConfigFileError" do
-        assert_raises_and_validate(
-          Script::Layers::Infrastructure::Errors::NoScriptConfigFileError,
-          proc { |e| assert_equal(script_config_filename, e.filename) }
-        ) { subject }
-      end
-    end
-
-    describe "script.config.yml already exists" do
-      let(:initial_title) { "my scripts title" }
-      let(:initial_description) { "my description" }
-      let(:script_config_content) do
-        {
-          "version" => "2",
-          "title" => initial_title,
-          "description" => initial_description,
-          "configuration" => {
-            "type": "single",
-            "schema": [
-              {
-                "key": "configurationKey",
-                "name": "My configuration field",
-                "type": "single_line_text_field",
-                "helpText": "This is some help text",
-                "defaultValue": "This is a default value",
-              },
-            ],
-          },
-        }
-      end
-
-      before do
-        ctx.write(script_config_filename, script_config_content.to_yaml)
-      end
-
-      it "updates only the provided fields" do
-        script_config = subject.script_config
-        file_content = YAML.load(ctx.read(script_config_filename))
-
-        assert_equal new_title, script_config.title
-        assert_equal new_title, file_content["title"]
-        refute_equal initial_title, script_config.title
-
-        assert_equal initial_description, script_config.content["description"]
-        assert_equal initial_description, file_content["description"]
-        assert_equal script_config_content["version"], script_config.version
-        assert_equal script_config_content["version"], file_content["version"]
-        assert_equal script_config_content["configuration"].to_json, script_config.configuration.to_json
-        assert_equal script_config_content["configuration"].to_json, file_content["configuration"].to_json
-      end
-    end
-
-    describe "script.json already exists" do
-      let(:initial_title) { "my scripts title" }
-      let(:initial_description) { "my description" }
-      let(:script_config_content) do
-        {
-          "version" => "2",
-          "title" => initial_title,
-          "description" => initial_description,
-          "configuration" => {
-            "type": "single",
-            "schema": [
-              {
-                "key": "configurationKey",
-                "name": "My configuration field",
-                "type": "single_line_text_field",
-                "helpText": "This is some help text",
-                "defaultValue": "This is a default value",
-              },
-            ],
-          },
-        }
-      end
-      let(:script_config_filename) { "script.json" }
-
-      before do
-        ctx.write(script_config_filename, script_config_content.to_json)
-      end
-
-      it "updates only the provided fields" do
-        script_config = subject.script_config
-        file_content = JSON.parse(ctx.read(script_config_filename))
-
-        assert_equal new_title, script_config.title
-        assert_equal new_title, file_content["title"]
-        refute_equal initial_title, script_config.title
-
-        assert_equal initial_description, script_config.content["description"]
-        assert_equal initial_description, file_content["description"]
-        assert_equal script_config_content["version"], script_config.version
-        assert_equal script_config_content["version"], file_content["version"]
-        assert_equal script_config_content["configuration"].to_json, script_config.configuration.to_json
-        assert_equal script_config_content["configuration"].to_json, file_content["configuration"].to_json
-      end
-    end
-  end
-
   describe "ScriptConfigYmlRepository" do
     let(:instance) { Script::Layers::Infrastructure::ScriptProjectRepository::ScriptConfigYmlRepository.new(ctx: ctx) }
     let(:version) { "2" }
-    let(:title) { "title" }
-    let(:content) { { "version" => version, "title" => title }.to_yaml }
+    let(:content) { { "version" => version }.to_yaml }
 
     describe "active?" do
       subject { instance.active? }
@@ -510,46 +400,9 @@ describe Script::Layers::Infrastructure::ScriptProjectRepository do
         describe "when content is valid yaml" do
           it "returns the entity" do
             assert_equal version, subject.version
-            assert_equal title, subject.title
-            assert_nil subject.description
             assert subject.configuration_ui
             assert_nil subject.configuration
           end
-        end
-      end
-    end
-
-    describe "update!" do
-      let(:new_title) { "new title" }
-      subject { instance.update!(title: new_title) }
-
-      describe "when file does not exist" do
-        it "raises NoScriptConfigFileError" do
-          assert_raises_and_validate(
-            Script::Layers::Infrastructure::Errors::NoScriptConfigFileError,
-            proc { |e| assert_equal(script_config_filename, e.filename) }
-          ) { subject }
-        end
-      end
-
-      describe "when file does exist" do
-        before do
-          File.write(script_config_filename, content)
-        end
-
-        it "updates the ScriptConfig" do
-          assert_equal version, subject.version
-          assert_equal new_title, subject.title
-          assert_nil subject.description
-          assert subject.configuration_ui
-          assert_nil subject.configuration
-        end
-
-        it "updates the file" do
-          subject
-          file_content = YAML.load(File.read(script_config_filename))
-          assert_equal version, file_content["version"]
-          assert_equal new_title, file_content["title"]
         end
       end
     end
@@ -620,8 +473,7 @@ describe Script::Layers::Infrastructure::ScriptProjectRepository do
   describe "ScriptJsonRepository" do
     let(:instance) { Script::Layers::Infrastructure::ScriptProjectRepository::ScriptJsonRepository.new(ctx: ctx) }
     let(:version) { "2" }
-    let(:title) { "title" }
-    let(:content) { { "version" => version, "title" => title }.to_json }
+    let(:content) { { "version" => version }.to_json }
     let(:script_config_filename) { "script.json" }
 
     describe "active?" do
@@ -703,46 +555,9 @@ describe Script::Layers::Infrastructure::ScriptProjectRepository do
         describe "when content is valid yaml" do
           it "returns the entity" do
             assert_equal version, subject.version
-            assert_equal title, subject.title
-            assert_nil subject.description
             assert subject.configuration_ui
             assert_nil subject.configuration
           end
-        end
-      end
-    end
-
-    describe "update!" do
-      let(:new_title) { "new title" }
-      subject { instance.update!(title: new_title) }
-
-      describe "when file does not exist" do
-        it "raises NoScriptConfigFileError" do
-          assert_raises_and_validate(
-            Script::Layers::Infrastructure::Errors::NoScriptConfigFileError,
-            proc { |e| assert_equal(script_config_filename, e.filename) }
-          ) { subject }
-        end
-      end
-
-      describe "when file does exist" do
-        before do
-          File.write(script_config_filename, content)
-        end
-
-        it "updates the ScriptConfig" do
-          assert_equal version, subject.version
-          assert_equal new_title, subject.title
-          assert_nil subject.description
-          assert subject.configuration_ui
-          assert_nil subject.configuration
-        end
-
-        it "updates the file" do
-          subject
-          file_content = JSON.parse(File.read(script_config_filename))
-          assert_equal version, file_content["version"]
-          assert_equal new_title, file_content["title"]
         end
       end
     end
