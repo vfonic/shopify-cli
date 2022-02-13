@@ -1,6 +1,13 @@
 module ShopifyCLI
   class PartnersAPI
     class Organizations
+      PARTNER_ORGANIZATION_NAMES = [
+        { 'id' => 459429, 'businessName' => 'Ada Apps' },
+        { 'id' => 1716422, 'businessName' => 'G & Co.' },
+        { 'id' => 123518, 'businessName' => 'Seventyfour Design' },
+        { 'id' => 2241463, 'businessName' => 'Burza d.o.o' },
+      ].freeze
+
       class << self
         def fetch_all(ctx)
           resp = PartnersAPI.query(ctx, "all_organizations")

@@ -6,7 +6,8 @@ module ShopifyCLI
       def call(_args, _name)
         shop = ShopifyCLI::DB.get(:shop)
         org_id = ShopifyCLI::DB.get(:organization_id)
-        org = ShopifyCLI::PartnersAPI::Organizations.fetch(@ctx, id: org_id) unless org_id.nil?
+        # org = ShopifyCLI::PartnersAPI::Organizations.fetch(@ctx, id: org_id) unless org_id.nil?
+        org = ShopifyCLI::PartnersAPI::Organizations::PARTNER_ORGANIZATION_NAMES.find { |o| o["id"] == org_id } unless org_id.nil?
 
         output = if shop.nil? && org.nil?
           @ctx.message("core.whoami.not_logged_in", ShopifyCLI::TOOL_NAME)

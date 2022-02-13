@@ -75,10 +75,11 @@ module ShopifyCLI
       private
 
       def select_organization
-        organizations = []
-        CLI::UI::Spinner.spin(@ctx.message("core.login.spinner.loading_organizations")) do
-          organizations = ShopifyCLI::PartnersAPI::Organizations.fetch_all(@ctx)
-        end
+        # organizations = []
+        # CLI::UI::Spinner.spin(@ctx.message("core.login.spinner.loading_organizations")) do
+        #   organizations = ShopifyCLI::PartnersAPI::Organizations.fetch_all(@ctx)
+        # end
+        organizations = ShopifyCLI::PartnersAPI::Organizations::PARTNER_ORGANIZATION_NAMES
 
         if organizations.count == 0
           nil
