@@ -21,6 +21,30 @@ Use 2.0 for developing themes. For developing apps and custom storefronts, we re
 
 ## Installation 
 
+To install Ada Apps fork of Shopify CLI, clone the repo, switch to `ada-apps-blink-and-butter` branch, build, and install the gem:
+
+```sh
+git clone https://github.com/vfonic/shopify-cli
+cd shopify-cli
+git checkout ada-apps-blink-and-butter
+gem build shopify-cli.gemspec
+gem install shopify-cli-*.gem
+```
+
+Picking up new updates:
+
+```sh
+git pull
+rm shopify-cli-*.gem
+gem build shopify-cli.gemspec
+gem install shopify-cli-*.gem
+```
+
+Hopefully some of these changes will be added to main Shopify CLI repo. Here's the issue I raised about this:
+https://github.com/Shopify/shopify-cli/issues/2052
+
+For original Shopify CLI:
+
 Check out our [installation steps](docs/users/installation.md).
 
 ## Contributing 👩‍💻
